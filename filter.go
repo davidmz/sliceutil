@@ -8,7 +8,9 @@ import (
 
 // Filter filters Go slice in-place.
 // If slice is not a slice pointer, Filter panics.
-func Filter(slicePtr interface{}, predicate func(int) bool) {
+// Custom disposers of the removing items can be used, see description
+// of the Disposer type.
+func Filter(slicePtr interface{}, predicate func(int) bool, disposers ...Disposer) {
 	val := reflect.ValueOf(slicePtr)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Slice {
 		panic(fmt.Sprintf("function called with non-slice pointer value of type %T", slicePtr))
@@ -27,6 +29,14 @@ func Filter(slicePtr interface{}, predicate func(int) bool) {
 			last++
 			continue
 		}
+	}
+
+	zero := reflect.Zero(sliceVal.Type().Elem())
+	for i := last; i < len; i++ {
+		for _, disposer := range disposers {
+			disposer(i)
+		}
+		sliceVal.Index(i).Set(zero)
 	}
 
 	sliceVal.SetLen(last)

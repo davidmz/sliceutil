@@ -14,6 +14,27 @@ func ExampleFilter() {
 	// Output: [4 8 16 42]
 }
 
+func ExampleFilter_nil() {
+	numbers := []int(nil)
+	sliceutil.Filter(&numbers, func(i int) bool { return numbers[i]%2 == 0 })
+	fmt.Println(numbers == nil)
+	// Output: true
+}
+
+func ExampleFilter_disposer() {
+	numbers := []int{4, 8, 15, 16, 23, 42}
+	sliceutil.Filter(
+		&numbers,
+		func(i int) bool { return numbers[i]%2 == 0 },
+		func(i int) { fmt.Println("Disposed:", numbers[i]) },
+	)
+	fmt.Println(numbers)
+	// Output:
+	// Disposed: 23
+	// Disposed: 15
+	// [4 8 16 42]
+}
+
 func ExampleShuffle() {
 	rand.Seed(42)
 	numbers := []int{4, 8, 15, 16, 23, 42}
